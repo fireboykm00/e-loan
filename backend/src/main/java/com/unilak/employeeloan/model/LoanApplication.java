@@ -1,5 +1,6 @@
 package com.unilak.employeeloan.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -24,10 +25,12 @@ public class LoanApplication {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnoreProperties({"loanApplications", "password"})
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "loan_type_id", nullable = false)
+    @JsonIgnoreProperties("loanApplications")
     private LoanType loanType;
 
     @NotNull
@@ -43,10 +46,19 @@ public class LoanApplication {
 
     private LocalDate approvedDate;
 
+    @ManyToOne
+    @JoinColumn(name = "approved_by")
+    @JsonIgnoreProperties({"loanApplications", "password"})
+    private User approvedBy;
+
     @Column(columnDefinition = "TEXT")
     private String remarks;
 
+    @Column(columnDefinition = "TEXT")
+    private String rejectionReason;
+
     @OneToMany(mappedBy = "loanApplication", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("loanApplication")
     private List<Repayment> repayments = new ArrayList<>();
 
     @Transient

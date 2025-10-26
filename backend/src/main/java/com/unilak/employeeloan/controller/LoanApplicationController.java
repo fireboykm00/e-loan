@@ -19,16 +19,24 @@ public class LoanApplicationController {
     private final LoanApplicationService loanApplicationService;
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<LoanApplication>> getAllLoans() {
         return ResponseEntity.ok(loanApplicationService.getAllLoans());
     }
 
+    @GetMapping("/my-loans")
+    public ResponseEntity<List<LoanApplication>> getMyLoans() {
+        return ResponseEntity.ok(loanApplicationService.getMyLoans());
+    }
+
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<LoanApplication>> getLoansByUser(@PathVariable Long userId) {
         return ResponseEntity.ok(loanApplicationService.getLoansByUser(userId));
     }
 
     @GetMapping("/status/{status}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<LoanApplication>> getLoansByStatus(@PathVariable LoanApplication.LoanStatus status) {
         return ResponseEntity.ok(loanApplicationService.getLoansByStatus(status));
     }
@@ -51,8 +59,8 @@ public class LoanApplicationController {
 
     @PutMapping("/{id}/reject")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<LoanApplication> rejectLoan(@PathVariable Long id) {
-        return ResponseEntity.ok(loanApplicationService.rejectLoan(id));
+    public ResponseEntity<LoanApplication> rejectLoan(@PathVariable Long id, @RequestBody(required = false) String remarks) {
+        return ResponseEntity.ok(loanApplicationService.rejectLoan(id, remarks));
     }
 
     @PutMapping("/{id}/complete")

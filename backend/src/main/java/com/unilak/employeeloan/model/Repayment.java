@@ -1,5 +1,6 @@
 package com.unilak.employeeloan.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -22,6 +23,7 @@ public class Repayment {
 
     @ManyToOne
     @JoinColumn(name = "loan_id", nullable = false)
+    @JsonIgnoreProperties({"repayments", "user", "loanType"})
     private LoanApplication loanApplication;
 
     @NotNull

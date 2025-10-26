@@ -27,6 +27,14 @@ public class LoanApplicationService {
         return loanApplicationRepository.findAll();
     }
 
+    public List<LoanApplication> getMyLoans() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return loanApplicationRepository.findByUserId(user.getId());
+    }
+
     public List<LoanApplication> getLoansByUser(Long userId) {
         return loanApplicationRepository.findByUserId(userId);
     }
@@ -66,15 +74,40 @@ public class LoanApplicationService {
     }
 
     public LoanApplication approveLoan(Long loanId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        User admin = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Admin user not found"));
+
         LoanApplication loan = getLoanById(loanId);
+        
+        // Validation: Can only approve PENDING loans
+        if (loan.getStatus() != LoanApplication.LoanStatus.PENDING) {
+            throw new RuntimeException("Can only approve loans with PENDING status. Current status: " + loan.getStatus());
+        }
+        
         loan.setStatus(LoanApplication.LoanStatus.APPROVED);
         loan.setApprovedDate(LocalDate.now());
+        loan.setApprovedBy(admin);
         return loanApplicationRepository.save(loan);
     }
 
-    public LoanApplication rejectLoan(Long loanId) {
+    public LoanApplication rejectLoan(Long loanId, String rejectionReason) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        User admin = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Admin user not found"));
+
         LoanApplication loan = getLoanById(loanId);
+        
+        // Validation: Can only reject PENDING loans
+        if (loan.getStatus() != LoanApplication.LoanStatus.PENDING) {
+            throw new RuntimeException("Can only reject loans with PENDING status. Current status: " + loan.getStatus());
+        }
+        
         loan.setStatus(LoanApplication.LoanStatus.REJECTED);
+        loan.setApprovedBy(admin);
+        loan.setRejectionReason(rejectionReason != null ? rejectionReason : "No reason provided");
         return loanApplicationRepository.save(loan);
     }
 

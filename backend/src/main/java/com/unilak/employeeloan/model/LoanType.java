@@ -1,5 +1,6 @@
 package com.unilak.employeeloan.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -31,5 +32,6 @@ public class LoanType {
     private BigDecimal maxAmount;
 
     @OneToMany(mappedBy = "loanType", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<LoanApplication> loanApplications = new ArrayList<>();
 }
