@@ -3,10 +3,12 @@ package com.unilak.employeeloan.service;
 import com.unilak.employeeloan.dto.LoanApplicationRequest;
 import com.unilak.employeeloan.model.LoanApplication;
 import com.unilak.employeeloan.model.LoanType;
-import com.unilak.employeeloan.model.User;
+import com.unilak.employeeloan.model.Employee;
+import com.unilak.employeeloan.model.LoanOfficer;
+import com.unilak.employeeloan.repository.EmployeeRepository;
 import com.unilak.employeeloan.repository.LoanApplicationRepository;
+import com.unilak.employeeloan.repository.LoanOfficerRepository;
 import com.unilak.employeeloan.repository.LoanTypeRepository;
-import com.unilak.employeeloan.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,7 +23,8 @@ public class LoanApplicationService {
 
     private final LoanApplicationRepository loanApplicationRepository;
     private final LoanTypeRepository loanTypeRepository;
-    private final UserRepository userRepository;
+    private final EmployeeRepository employeeRepository;
+    private final LoanOfficerRepository loanOfficerRepository;
 
     public List<LoanApplication> getAllLoans() {
         return loanApplicationRepository.findAll();
@@ -30,13 +33,13 @@ public class LoanApplicationService {
     public List<LoanApplication> getMyLoans() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return loanApplicationRepository.findByUserId(user.getId());
+        Employee employee = employeeRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+        return loanApplicationRepository.findByEmployeeId(employee.getId());
     }
 
-    public List<LoanApplication> getLoansByUser(Long userId) {
-        return loanApplicationRepository.findByUserId(userId);
+    public List<LoanApplication> getLoansByEmployee(Long employeeId) {
+        return loanApplicationRepository.findByEmployeeId(employeeId);
     }
 
     public List<LoanApplication> getLoansByStatus(LoanApplication.LoanStatus status) {
@@ -52,8 +55,8 @@ public class LoanApplicationService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
         
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        Employee employee = employeeRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
 
         LoanType loanType = loanTypeRepository.findById(request.getLoanTypeId())
                 .orElseThrow(() -> new RuntimeException("Loan type not found"));
@@ -63,7 +66,7 @@ public class LoanApplicationService {
         }
 
         LoanApplication loanApplication = new LoanApplication();
-        loanApplication.setUser(user);
+        loanApplication.setEmployee(employee);
         loanApplication.setLoanType(loanType);
         loanApplication.setAmount(request.getAmount());
         loanApplication.setRemarks(request.getRemarks());
@@ -76,8 +79,8 @@ public class LoanApplicationService {
     public LoanApplication approveLoan(Long loanId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
-        User admin = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Admin user not found"));
+        LoanOfficer loanOfficer = loanOfficerRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Loan Officer not found"));
 
         LoanApplication loan = getLoanById(loanId);
         
@@ -88,15 +91,15 @@ public class LoanApplicationService {
         
         loan.setStatus(LoanApplication.LoanStatus.APPROVED);
         loan.setApprovedDate(LocalDate.now());
-        loan.setApprovedBy(admin);
+        loan.setLoanOfficer(loanOfficer);
         return loanApplicationRepository.save(loan);
     }
 
     public LoanApplication rejectLoan(Long loanId, String rejectionReason) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
-        User admin = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Admin user not found"));
+        LoanOfficer loanOfficer = loanOfficerRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Loan Officer not found"));
 
         LoanApplication loan = getLoanById(loanId);
         
@@ -106,7 +109,7 @@ public class LoanApplicationService {
         }
         
         loan.setStatus(LoanApplication.LoanStatus.REJECTED);
-        loan.setApprovedBy(admin);
+        loan.setLoanOfficer(loanOfficer);
         loan.setRejectionReason(rejectionReason != null ? rejectionReason : "No reason provided");
         return loanApplicationRepository.save(loan);
     }

@@ -1,11 +1,15 @@
 package com.unilak.employeeloan.service;
 
 import com.unilak.employeeloan.dto.RepaymentRequest;
+import com.unilak.employeeloan.model.Accountant;
 import com.unilak.employeeloan.model.LoanApplication;
 import com.unilak.employeeloan.model.Repayment;
+import com.unilak.employeeloan.repository.AccountantRepository;
 import com.unilak.employeeloan.repository.LoanApplicationRepository;
 import com.unilak.employeeloan.repository.RepaymentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -18,6 +22,7 @@ public class RepaymentService {
 
     private final RepaymentRepository repaymentRepository;
     private final LoanApplicationRepository loanApplicationRepository;
+    private final AccountantRepository accountantRepository;
 
     public List<Repayment> getAllRepayments() {
         return repaymentRepository.findAll();
@@ -28,6 +33,11 @@ public class RepaymentService {
     }
 
     public Repayment createRepayment(RepaymentRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        Accountant accountant = accountantRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Accountant not found"));
+
         LoanApplication loan = loanApplicationRepository.findById(request.getLoanId())
                 .orElseThrow(() -> new RuntimeException("Loan application not found"));
 
@@ -43,6 +53,7 @@ public class RepaymentService {
 
         Repayment repayment = new Repayment();
         repayment.setLoanApplication(loan);
+        repayment.setAccountant(accountant);
         repayment.setAmountPaid(request.getAmountPaid());
         repayment.setPaymentDate(LocalDate.now());
         repayment.setBalance(currentBalance.subtract(request.getAmountPaid()));

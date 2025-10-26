@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +13,6 @@ import { Plus, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function MyLoans() {
-  const { user } = useAuth();
   const [loans, setLoans] = useState<LoanApplication[]>([]);
   const [selectedLoan, setSelectedLoan] = useState<LoanApplication | null>(null);
   const [repayments, setRepayments] = useState<Repayment[]>([]);
@@ -27,7 +25,7 @@ export function MyLoans() {
 
   const fetchLoans = async () => {
     try {
-      const response = await api.get<LoanApplication[]>(`/loans/user/${user?.userId}`);
+      const response = await api.get<LoanApplication[]>('/loans/my-loans');
       setLoans(response.data);
     } catch (error) {
       console.error('Error fetching loans:', error);

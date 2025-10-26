@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, Menu } from 'lucide-react';
+import { LogOut, Menu, Building2 } from 'lucide-react';
 
 export function Navbar() {
   const { user, logout } = useAuth();
@@ -24,21 +24,59 @@ export function Navbar() {
     <nav className="border-b bg-background">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link to="/" className="text-xl font-bold">
-            ELMS
+          <Link to="/" className="flex items-center gap-2 text-xl font-bold">
+            <Building2 className="h-6 w-6" />
+            <span>ELMS</span>
           </Link>
           {user && (
-            <div className="hidden md:flex gap-4">
-              <Link to="/dashboard">
-                <Button variant="ghost">Dashboard</Button>
-              </Link>
-              <Link to="/loans">
-                <Button variant="ghost">My Loans</Button>
-              </Link>
+            <div className="hidden md:flex gap-2">
+              {/* Employee Navigation */}
+              {user.role === 'EMPLOYEE' && (
+                <>
+                  <Link to="/employee/dashboard">
+                    <Button variant="ghost">Dashboard</Button>
+                  </Link>
+                  <Link to="/loans">
+                    <Button variant="ghost">My Loans</Button>
+                  </Link>
+                  <Link to="/loans/new">
+                    <Button variant="ghost">Apply for Loan</Button>
+                  </Link>
+                </>
+              )}
+              
+              {/* Loan Officer Navigation */}
+              {user.role === 'LOAN_OFFICER' && (
+                <>
+                  <Link to="/loan-officer/dashboard">
+                    <Button variant="ghost">Dashboard</Button>
+                  </Link>
+                  <Link to="/reports">
+                    <Button variant="ghost">Reports</Button>
+                  </Link>
+                </>
+              )}
+              
+              {/* Accountant Navigation */}
+              {user.role === 'ACCOUNTANT' && (
+                <>
+                  <Link to="/accountant/dashboard">
+                    <Button variant="ghost">Dashboard</Button>
+                  </Link>
+                  <Link to="/reports">
+                    <Button variant="ghost">Reports</Button>
+                  </Link>
+                </>
+              )}
+              
+              {/* Admin Navigation */}
               {user.role === 'ADMIN' && (
                 <>
-                  <Link to="/admin">
-                    <Button variant="ghost">Admin Panel</Button>
+                  <Link to="/admin/dashboard">
+                    <Button variant="ghost">Dashboard</Button>
+                  </Link>
+                  <Link to="/admin/users">
+                    <Button variant="ghost">User Management</Button>
                   </Link>
                   <Link to="/reports">
                     <Button variant="ghost">Reports</Button>
@@ -61,8 +99,8 @@ export function Navbar() {
                 <div className="flex flex-col">
                   <span className="font-medium">{user.name}</span>
                   <span className="text-xs text-muted-foreground">{user.email}</span>
-                  <span className="text-xs text-muted-foreground mt-1">
-                    {user.role}
+                  <span className="text-xs font-semibold text-primary mt-1">
+                    {user.role.replace('_', ' ')}
                   </span>
                 </div>
               </DropdownMenuLabel>

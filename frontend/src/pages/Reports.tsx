@@ -210,8 +210,8 @@ export function Reports() {
                   <TableRow key={loan.loanId}>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{loan.user.name}</p>
-                        <p className="text-xs text-muted-foreground">{loan.user.email}</p>
+                        <p className="font-medium">{loan.employee.name}</p>
+                        <p className="text-xs text-muted-foreground">{loan.employee.email}</p>
                       </div>
                     </TableCell>
                     <TableCell>{loan.loanType.name}</TableCell>

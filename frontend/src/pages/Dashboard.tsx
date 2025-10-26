@@ -19,7 +19,7 @@ export function Dashboard() {
 
   const fetchLoans = async () => {
     try {
-      const endpoint = isAdmin ? '/loans' : `/loans/user/${user?.userId}`;
+      const endpoint = isAdmin ? '/loans' : '/loans/my-loans';
       const response = await api.get<LoanApplication[]>(endpoint);
       setLoans(response.data);
     } catch (error) {
@@ -136,7 +136,7 @@ export function Dashboard() {
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {isAdmin && `${loan.user.name} • `}
+                      {isAdmin && `${loan.employee.name} • `}
                       Applied: {new Date(loan.applicationDate).toLocaleDateString()}
                     </p>
                   </div>
