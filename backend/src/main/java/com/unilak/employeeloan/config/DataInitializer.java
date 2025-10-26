@@ -71,45 +71,45 @@ public class DataInitializer implements CommandLineRunner {
             // Create Admin
             Admin admin = new Admin();
             admin.setName("System Admin");
-            admin.setEmail("admin@unilak.ac.rw");
-            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setEmail("admin@company.com");
+            admin.setPassword(passwordEncoder.encode("pass123"));
             admin.setAdminRole("Super Admin");
             adminRepository.save(admin);
 
             // Create Employees
             Employee employee1 = new Employee();
             employee1.setName("John Doe");
-            employee1.setEmail("john.doe@unilak.ac.rw");
-            employee1.setPassword(passwordEncoder.encode("employee123"));
+            employee1.setEmail("employee@company.com");
+            employee1.setPassword(passwordEncoder.encode("pass123"));
             employee1.setDepartment("IT Department");
             employeeRepository.save(employee1);
 
             Employee employee2 = new Employee();
             employee2.setName("Jane Smith");
-            employee2.setEmail("jane.smith@unilak.ac.rw");
-            employee2.setPassword(passwordEncoder.encode("employee123"));
+            employee2.setEmail("jane.smith@company.com");
+            employee2.setPassword(passwordEncoder.encode("pass123"));
             employee2.setDepartment("HR Department");
             employeeRepository.save(employee2);
 
             // Create Loan Officer
             LoanOfficer loanOfficer = new LoanOfficer();
             loanOfficer.setName("Michael Johnson");
-            loanOfficer.setEmail("loan.officer@unilak.ac.rw");
-            loanOfficer.setPassword(passwordEncoder.encode("officer123"));
+            loanOfficer.setEmail("officer@company.com");
+            loanOfficer.setPassword(passwordEncoder.encode("pass123"));
             loanOfficerRepository.save(loanOfficer);
 
             // Create Accountant
             Accountant accountant = new Accountant();
             accountant.setName("Sarah Williams");
-            accountant.setEmail("accountant@unilak.ac.rw");
-            accountant.setPassword(passwordEncoder.encode("accountant123"));
+            accountant.setEmail("accountant@company.com");
+            accountant.setPassword(passwordEncoder.encode("pass123"));
             accountantRepository.save(accountant);
 
             log.info("Default users initialized successfully");
-            log.info("Admin credentials - Email: admin@unilak.ac.rw, Password: admin123");
-            log.info("Employee credentials - Email: john.doe@unilak.ac.rw, Password: employee123");
-            log.info("Loan Officer credentials - Email: loan.officer@unilak.ac.rw, Password: officer123");
-            log.info("Accountant credentials - Email: accountant@unilak.ac.rw, Password: accountant123");
+            log.info("👤 Employee: employee@company.com / pass123");
+            log.info("💼 Loan Officer: officer@company.com / pass123");
+            log.info("📊 Accountant: accountant@company.com / pass123");
+            log.info("🔧 Admin: admin@company.com / pass123");
         }
     }
 }

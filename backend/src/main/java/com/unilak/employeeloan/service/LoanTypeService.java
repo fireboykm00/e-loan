@@ -1,5 +1,6 @@
 package com.unilak.employeeloan.service;
 
+import com.unilak.employeeloan.exception.ResourceNotFoundException;
 import com.unilak.employeeloan.model.LoanType;
 import com.unilak.employeeloan.repository.LoanTypeRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class LoanTypeService {
 
     public LoanType getLoanTypeById(Long id) {
         return loanTypeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Loan type not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("LoanType", "id", id));
     }
 
     public LoanType createLoanType(LoanType loanType) {

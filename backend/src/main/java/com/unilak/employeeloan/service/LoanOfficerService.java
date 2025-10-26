@@ -1,5 +1,6 @@
 package com.unilak.employeeloan.service;
 
+import com.unilak.employeeloan.exception.ResourceNotFoundException;
 import com.unilak.employeeloan.model.LoanOfficer;
 import com.unilak.employeeloan.repository.LoanOfficerRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,17 +22,17 @@ public class LoanOfficerService {
 
     public LoanOfficer getLoanOfficerById(Long id) {
         return loanOfficerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Loan Officer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("LoanOfficer", "id", id));
     }
 
     public LoanOfficer getLoanOfficerByEmail(String email) {
         return loanOfficerRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Loan Officer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("LoanOfficer", "email", email));
     }
 
     public LoanOfficer createLoanOfficer(LoanOfficer loanOfficer) {
         if (loanOfficerRepository.existsByEmail(loanOfficer.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new IllegalArgumentException("Email already exists");
         }
         loanOfficer.setPassword(passwordEncoder.encode(loanOfficer.getPassword()));
         return loanOfficerRepository.save(loanOfficer);

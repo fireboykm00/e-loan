@@ -1,6 +1,7 @@
 package com.unilak.employeeloan.service;
 
 import com.unilak.employeeloan.dto.RepaymentRequest;
+import com.unilak.employeeloan.exception.ResourceNotFoundException;
 import com.unilak.employeeloan.model.Accountant;
 import com.unilak.employeeloan.model.LoanApplication;
 import com.unilak.employeeloan.model.Repayment;
@@ -36,19 +37,19 @@ public class RepaymentService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
         Accountant accountant = accountantRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Accountant not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Accountant", "email", email));
 
         LoanApplication loan = loanApplicationRepository.findById(request.getLoanId())
-                .orElseThrow(() -> new RuntimeException("Loan application not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("LoanApplication", "id", request.getLoanId()));
 
         if (loan.getStatus() != LoanApplication.LoanStatus.APPROVED 
             && loan.getStatus() != LoanApplication.LoanStatus.COMPLETED) {
-            throw new RuntimeException("Cannot make payment for loan that is not approved");
+            throw new IllegalStateException("Cannot make payment for loan that is not approved");
         }
 
         BigDecimal currentBalance = loan.getOutstandingBalance();
         if (request.getAmountPaid().compareTo(currentBalance) > 0) {
-            throw new RuntimeException("Payment amount exceeds outstanding balance");
+            throw new IllegalArgumentException("Payment amount exceeds outstanding balance");
         }
 
         Repayment repayment = new Repayment();

@@ -1,5 +1,6 @@
 package com.unilak.employeeloan.service;
 
+import com.unilak.employeeloan.exception.ResourceNotFoundException;
 import com.unilak.employeeloan.model.Admin;
 import com.unilak.employeeloan.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,17 +22,17 @@ public class AdminService {
 
     public Admin getAdminById(Long id) {
         return adminRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Admin not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Admin", "id", id));
     }
 
     public Admin getAdminByEmail(String email) {
         return adminRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Admin not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Admin", "email", email));
     }
 
     public Admin createAdmin(Admin admin) {
         if (adminRepository.existsByEmail(admin.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new IllegalArgumentException("Email already exists");
         }
         admin.setPassword(passwordEncoder.encode(admin.getPassword()));
         return adminRepository.save(admin);

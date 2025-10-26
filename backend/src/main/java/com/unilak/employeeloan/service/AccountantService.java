@@ -1,5 +1,6 @@
 package com.unilak.employeeloan.service;
 
+import com.unilak.employeeloan.exception.ResourceNotFoundException;
 import com.unilak.employeeloan.model.Accountant;
 import com.unilak.employeeloan.repository.AccountantRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,17 +22,17 @@ public class AccountantService {
 
     public Accountant getAccountantById(Long id) {
         return accountantRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Accountant not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Accountant", "id", id));
     }
 
     public Accountant getAccountantByEmail(String email) {
         return accountantRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Accountant not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Accountant", "email", email));
     }
 
     public Accountant createAccountant(Accountant accountant) {
         if (accountantRepository.existsByEmail(accountant.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new IllegalArgumentException("Email already exists");
         }
         accountant.setPassword(passwordEncoder.encode(accountant.getPassword()));
         return accountantRepository.save(accountant);

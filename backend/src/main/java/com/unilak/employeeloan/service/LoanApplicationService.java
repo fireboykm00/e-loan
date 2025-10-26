@@ -1,6 +1,7 @@
 package com.unilak.employeeloan.service;
 
 import com.unilak.employeeloan.dto.LoanApplicationRequest;
+import com.unilak.employeeloan.exception.ResourceNotFoundException;
 import com.unilak.employeeloan.model.LoanApplication;
 import com.unilak.employeeloan.model.LoanType;
 import com.unilak.employeeloan.model.Employee;
@@ -48,7 +49,7 @@ public class LoanApplicationService {
 
     public LoanApplication getLoanById(Long id) {
         return loanApplicationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Loan application not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("LoanApplication", "id", id));
     }
 
     public LoanApplication createLoanApplication(LoanApplicationRequest request) {
@@ -56,13 +57,13 @@ public class LoanApplicationService {
         String email = auth.getName();
         
         Employee employee = employeeRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Employee", "email", email));
 
         LoanType loanType = loanTypeRepository.findById(request.getLoanTypeId())
-                .orElseThrow(() -> new RuntimeException("Loan type not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("LoanType", "id", request.getLoanTypeId()));
 
         if (request.getAmount().compareTo(loanType.getMaxAmount()) > 0) {
-            throw new RuntimeException("Loan amount exceeds maximum allowed for this loan type");
+            throw new IllegalArgumentException("Loan amount exceeds maximum allowed for this loan type");
         }
 
         LoanApplication loanApplication = new LoanApplication();
@@ -80,13 +81,13 @@ public class LoanApplicationService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
         LoanOfficer loanOfficer = loanOfficerRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Loan Officer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("LoanOfficer", "email", email));
 
         LoanApplication loan = getLoanById(loanId);
         
         // Validation: Can only approve PENDING loans
         if (loan.getStatus() != LoanApplication.LoanStatus.PENDING) {
-            throw new RuntimeException("Can only approve loans with PENDING status. Current status: " + loan.getStatus());
+            throw new IllegalStateException("Can only approve loans with PENDING status. Current status: " + loan.getStatus());
         }
         
         loan.setStatus(LoanApplication.LoanStatus.APPROVED);
@@ -99,13 +100,13 @@ public class LoanApplicationService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
         LoanOfficer loanOfficer = loanOfficerRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Loan Officer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("LoanOfficer", "email", email));
 
         LoanApplication loan = getLoanById(loanId);
         
         // Validation: Can only reject PENDING loans
         if (loan.getStatus() != LoanApplication.LoanStatus.PENDING) {
-            throw new RuntimeException("Can only reject loans with PENDING status. Current status: " + loan.getStatus());
+            throw new IllegalStateException("Can only reject loans with PENDING status. Current status: " + loan.getStatus());
         }
         
         loan.setStatus(LoanApplication.LoanStatus.REJECTED);
@@ -120,6 +121,6 @@ public class LoanApplicationService {
             loan.setStatus(LoanApplication.LoanStatus.COMPLETED);
             return loanApplicationRepository.save(loan);
         }
-        throw new RuntimeException("Cannot complete loan with outstanding balance");
+        throw new IllegalStateException("Cannot complete loan with outstanding balance");
     }
 }
