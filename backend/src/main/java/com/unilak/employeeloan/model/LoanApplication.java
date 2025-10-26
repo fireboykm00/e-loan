@@ -24,9 +24,9 @@ public class LoanApplication {
     private Long loanId;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "employee_id", nullable = false)
     @JsonIgnoreProperties({"loanApplications", "password"})
-    private User user;
+    private Employee employee;
 
     @ManyToOne
     @JoinColumn(name = "loan_type_id", nullable = false)
@@ -47,9 +47,9 @@ public class LoanApplication {
     private LocalDate approvedDate;
 
     @ManyToOne
-    @JoinColumn(name = "approved_by")
-    @JsonIgnoreProperties({"loanApplications", "password"})
-    private User approvedBy;
+    @JoinColumn(name = "officer_id")
+    @JsonIgnoreProperties({"processedApplications", "password"})
+    private LoanOfficer loanOfficer;
 
     @Column(columnDefinition = "TEXT")
     private String remarks;

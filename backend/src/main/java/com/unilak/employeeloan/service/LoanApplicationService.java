@@ -1,12 +1,15 @@
 package com.unilak.employeeloan.service;
 
 import com.unilak.employeeloan.dto.LoanApplicationRequest;
+import com.unilak.employeeloan.exception.ResourceNotFoundException;
 import com.unilak.employeeloan.model.LoanApplication;
 import com.unilak.employeeloan.model.LoanType;
-import com.unilak.employeeloan.model.User;
+import com.unilak.employeeloan.model.Employee;
+import com.unilak.employeeloan.model.LoanOfficer;
+import com.unilak.employeeloan.repository.EmployeeRepository;
 import com.unilak.employeeloan.repository.LoanApplicationRepository;
+import com.unilak.employeeloan.repository.LoanOfficerRepository;
 import com.unilak.employeeloan.repository.LoanTypeRepository;
-import com.unilak.employeeloan.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,7 +24,8 @@ public class LoanApplicationService {
 
     private final LoanApplicationRepository loanApplicationRepository;
     private final LoanTypeRepository loanTypeRepository;
-    private final UserRepository userRepository;
+    private final EmployeeRepository employeeRepository;
+    private final LoanOfficerRepository loanOfficerRepository;
 
     public List<LoanApplication> getAllLoans() {
         return loanApplicationRepository.findAll();
@@ -30,13 +34,13 @@ public class LoanApplicationService {
     public List<LoanApplication> getMyLoans() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        return loanApplicationRepository.findByUserId(user.getId());
+        Employee employee = employeeRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+        return loanApplicationRepository.findByEmployeeId(employee.getId());
     }
 
-    public List<LoanApplication> getLoansByUser(Long userId) {
-        return loanApplicationRepository.findByUserId(userId);
+    public List<LoanApplication> getLoansByEmployee(Long employeeId) {
+        return loanApplicationRepository.findByEmployeeId(employeeId);
     }
 
     public List<LoanApplication> getLoansByStatus(LoanApplication.LoanStatus status) {
@@ -45,25 +49,25 @@ public class LoanApplicationService {
 
     public LoanApplication getLoanById(Long id) {
         return loanApplicationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Loan application not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("LoanApplication", "id", id));
     }
 
     public LoanApplication createLoanApplication(LoanApplicationRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
         
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        Employee employee = employeeRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee", "email", email));
 
         LoanType loanType = loanTypeRepository.findById(request.getLoanTypeId())
-                .orElseThrow(() -> new RuntimeException("Loan type not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("LoanType", "id", request.getLoanTypeId()));
 
         if (request.getAmount().compareTo(loanType.getMaxAmount()) > 0) {
-            throw new RuntimeException("Loan amount exceeds maximum allowed for this loan type");
+            throw new IllegalArgumentException("Loan amount exceeds maximum allowed for this loan type");
         }
 
         LoanApplication loanApplication = new LoanApplication();
-        loanApplication.setUser(user);
+        loanApplication.setEmployee(employee);
         loanApplication.setLoanType(loanType);
         loanApplication.setAmount(request.getAmount());
         loanApplication.setRemarks(request.getRemarks());
@@ -76,37 +80,37 @@ public class LoanApplicationService {
     public LoanApplication approveLoan(Long loanId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
-        User admin = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Admin user not found"));
+        LoanOfficer loanOfficer = loanOfficerRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("LoanOfficer", "email", email));
 
         LoanApplication loan = getLoanById(loanId);
         
         // Validation: Can only approve PENDING loans
         if (loan.getStatus() != LoanApplication.LoanStatus.PENDING) {
-            throw new RuntimeException("Can only approve loans with PENDING status. Current status: " + loan.getStatus());
+            throw new IllegalStateException("Can only approve loans with PENDING status. Current status: " + loan.getStatus());
         }
         
         loan.setStatus(LoanApplication.LoanStatus.APPROVED);
         loan.setApprovedDate(LocalDate.now());
-        loan.setApprovedBy(admin);
+        loan.setLoanOfficer(loanOfficer);
         return loanApplicationRepository.save(loan);
     }
 
     public LoanApplication rejectLoan(Long loanId, String rejectionReason) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
-        User admin = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Admin user not found"));
+        LoanOfficer loanOfficer = loanOfficerRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("LoanOfficer", "email", email));
 
         LoanApplication loan = getLoanById(loanId);
         
         // Validation: Can only reject PENDING loans
         if (loan.getStatus() != LoanApplication.LoanStatus.PENDING) {
-            throw new RuntimeException("Can only reject loans with PENDING status. Current status: " + loan.getStatus());
+            throw new IllegalStateException("Can only reject loans with PENDING status. Current status: " + loan.getStatus());
         }
         
         loan.setStatus(LoanApplication.LoanStatus.REJECTED);
-        loan.setApprovedBy(admin);
+        loan.setLoanOfficer(loanOfficer);
         loan.setRejectionReason(rejectionReason != null ? rejectionReason : "No reason provided");
         return loanApplicationRepository.save(loan);
     }
@@ -117,6 +121,6 @@ public class LoanApplicationService {
             loan.setStatus(LoanApplication.LoanStatus.COMPLETED);
             return loanApplicationRepository.save(loan);
         }
-        throw new RuntimeException("Cannot complete loan with outstanding balance");
+        throw new IllegalStateException("Cannot complete loan with outstanding balance");
     }
 }

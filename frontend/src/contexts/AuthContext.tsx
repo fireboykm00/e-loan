@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import api from '@/lib/api';
-import type { LoginRequest, LoginResponse, User } from '@/lib/types';
+import type { LoginRequest, LoginResponse, User, UserRole } from '@/lib/types';
 
 interface AuthContextType {
   user: User | null;
@@ -9,6 +9,10 @@ interface AuthContextType {
   login: (credentials: LoginRequest) => Promise<void>;
   logout: () => void;
   isAdmin: boolean;
+  isEmployee: boolean;
+  isLoanOfficer: boolean;
+  isAccountant: boolean;
+  hasRole: (roles: UserRole[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const response = await api.post<LoginResponse>('/auth/login', credentials);
     const { token, userId, email, name, role } = response.data;
     
-    const userData: User = { userId, email, name, role: role as 'ADMIN' | 'EMPLOYEE' };
+    const userData: User = { userId, email, name, role: role as UserRole };
     
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
@@ -48,9 +52,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const isAdmin = user?.role === 'ADMIN';
+  const isEmployee = user?.role === 'EMPLOYEE';
+  const isLoanOfficer = user?.role === 'LOAN_OFFICER';
+  const isAccountant = user?.role === 'ACCOUNTANT';
+  
+  const hasRole = (roles: UserRole[]) => {
+    return user ? roles.includes(user.role) : false;
+  };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAdmin }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      login, 
+      logout, 
+      isAdmin, 
+      isEmployee, 
+      isLoanOfficer, 
+      isAccountant,
+      hasRole 
+    }}>
       {children}
     </AuthContext.Provider>
   );

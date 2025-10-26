@@ -23,8 +23,13 @@ public class Repayment {
 
     @ManyToOne
     @JoinColumn(name = "loan_id", nullable = false)
-    @JsonIgnoreProperties({"repayments", "user", "loanType"})
+    @JsonIgnoreProperties({"repayments", "employee", "loanType"})
     private LoanApplication loanApplication;
+
+    @ManyToOne
+    @JoinColumn(name = "accountant_id")
+    @JsonIgnoreProperties({"processedRepayments", "password"})
+    private Accountant accountant;
 
     @NotNull
     @Positive

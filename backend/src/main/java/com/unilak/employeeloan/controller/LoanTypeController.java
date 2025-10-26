@@ -43,6 +43,6 @@ public class LoanTypeController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteLoanType(@PathVariable Long id) {
         loanTypeService.deleteLoanType(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }

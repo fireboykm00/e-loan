@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -13,8 +13,21 @@ export function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      const dashboardMap: Record<string, string> = {
+        EMPLOYEE: '/employee/dashboard',
+        LOAN_OFFICER: '/loan-officer/dashboard',
+        ACCOUNTANT: '/accountant/dashboard',
+        ADMIN: '/admin/dashboard',
+      };
+      navigate(dashboardMap[user.role] || '/employee/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +36,22 @@ export function Login() {
 
     try {
       await login({ email, password });
-      navigate('/dashboard');
+      
+      // Get the user data from localStorage after login
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        
+        // Redirect based on role
+        const dashboardMap: Record<string, string> = {
+          EMPLOYEE: '/employee/dashboard',
+          LOAN_OFFICER: '/loan-officer/dashboard',
+          ACCOUNTANT: '/accountant/dashboard',
+          ADMIN: '/admin/dashboard',
+        };
+        
+        navigate(dashboardMap[user.role] || '/employee/dashboard');
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid credentials');
     } finally {
@@ -76,10 +104,14 @@ export function Login() {
               Sign In
             </Button>
 
-            <div className="text-sm text-muted-foreground text-center space-y-1">
-              <p>Demo Credentials:</p>
-              <p className="font-mono text-xs">Admin: admin@unilak.ac.rw / admin123</p>
-              <p className="font-mono text-xs">Employee: john.doe@unilak.ac.rw / employee123</p>
+            <div className="text-sm text-muted-foreground text-center space-y-2">
+              <p className="font-semibold">Demo Credentials:</p>
+              <div className="space-y-1">
+                <p className="font-mono text-xs">👤 Employee: employee@company.com / pass123</p>
+                <p className="font-mono text-xs">💼 Loan Officer: officer@company.com / pass123</p>
+                <p className="font-mono text-xs">📊 Accountant: accountant@company.com / pass123</p>
+                <p className="font-mono text-xs">🔧 Admin: admin@company.com / pass123</p>
+              </div>
             </div>
           </form>
         </CardContent>

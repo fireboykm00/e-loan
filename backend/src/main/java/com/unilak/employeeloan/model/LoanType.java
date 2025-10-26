@@ -31,6 +31,10 @@ public class LoanType {
     @Positive
     private BigDecimal maxAmount;
 
+    @NotNull
+    @Positive
+    private BigDecimal interestRate;
+
     @OneToMany(mappedBy = "loanType", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<LoanApplication> loanApplications = new ArrayList<>();

@@ -17,7 +17,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/reports")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'LOAN_OFFICER', 'ACCOUNTANT')")
 public class ReportController {
 
     private final LoanApplicationService loanApplicationService;
