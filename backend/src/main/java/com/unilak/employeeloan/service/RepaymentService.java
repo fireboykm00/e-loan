@@ -61,11 +61,16 @@ public class RepaymentService {
 
         Repayment savedRepayment = repaymentRepository.save(repayment);
 
+        // Add repayment to loan's collection to maintain bidirectional relationship
+        loan.getRepayments().add(savedRepayment);
+
         // Auto-complete loan if fully paid
         if (repayment.getBalance().compareTo(BigDecimal.ZERO) == 0) {
             loan.setStatus(LoanApplication.LoanStatus.COMPLETED);
-            loanApplicationRepository.save(loan);
         }
+        
+        // Save the loan to update status and maintain relationship
+        loanApplicationRepository.save(loan);
 
         return savedRepayment;
     }

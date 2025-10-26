@@ -7,6 +7,7 @@ import com.unilak.employeeloan.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,21 +27,25 @@ public class AuthController {
     }
 
     @PostMapping("/register/employee")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Employee> registerEmployee(@Valid @RequestBody Employee employee) {
         return ResponseEntity.ok(employeeService.createEmployee(employee));
     }
 
     @PostMapping("/register/admin")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Admin> registerAdmin(@Valid @RequestBody Admin admin) {
         return ResponseEntity.ok(adminService.createAdmin(admin));
     }
 
     @PostMapping("/register/loan-officer")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<LoanOfficer> registerLoanOfficer(@Valid @RequestBody LoanOfficer loanOfficer) {
         return ResponseEntity.ok(loanOfficerService.createLoanOfficer(loanOfficer));
     }
 
     @PostMapping("/register/accountant")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Accountant> registerAccountant(@Valid @RequestBody Accountant accountant) {
         return ResponseEntity.ok(accountantService.createAccountant(accountant));
     }

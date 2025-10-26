@@ -20,11 +20,22 @@ export function Navbar() {
     navigate('/login');
   };
 
+  const getDashboardRoute = () => {
+    if (!user) return '/login';
+    const dashboardMap: Record<string, string> = {
+      EMPLOYEE: '/employee/dashboard',
+      LOAN_OFFICER: '/loan-officer/dashboard',
+      ACCOUNTANT: '/accountant/dashboard',
+      ADMIN: '/admin/dashboard',
+    };
+    return dashboardMap[user.role] || '/login';
+  };
+
   return (
     <nav className="border-b bg-background">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link to="/" className="flex items-center gap-2 text-xl font-bold">
+          <Link to={getDashboardRoute()} className="flex items-center gap-2 text-xl font-bold">
             <Building2 className="h-6 w-6" />
             <span>ELMS</span>
           </Link>

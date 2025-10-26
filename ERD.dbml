@@ -1,0 +1,112 @@
+// Employee Loan Management System (ELMS) - Database Schema
+// Use this code on dbdiagram.io to generate ERD
+
+Table employees {
+  id bigint [pk, increment]
+  name varchar [not null]
+  email varchar [unique, not null]
+  password varchar [not null]
+  department varchar
+  
+  Note: 'Employees who can apply for loans'
+}
+
+Table admins {
+  id bigint [pk, increment]
+  name varchar [not null]
+  email varchar [unique, not null]
+  password varchar [not null]
+  admin_role varchar
+  
+  Note: 'System administrators with full access'
+}
+
+Table loan_officers {
+  id bigint [pk, increment]
+  name varchar [not null]
+  email varchar [unique, not null]
+  password varchar [not null]
+  
+  Note: 'Officers who approve/reject loan applications'
+}
+
+Table accountants {
+  id bigint [pk, increment]
+  name varchar [not null]
+  email varchar [unique, not null]
+  password varchar [not null]
+  
+  Note: 'Accountants who process loan repayments'
+}
+
+Table loan_types {
+  loan_type_id bigint [pk, increment]
+  name varchar [not null]
+  description text
+  max_amount decimal [not null]
+  
+  Note: 'Predefined loan categories (e.g., Salary Advance, Emergency)'
+}
+
+Table loan_applications {
+  loan_id bigint [pk, increment]
+  employee_id bigint [not null, ref: > employees.id]
+  loan_type_id bigint [not null, ref: > loan_types.loan_type_id]
+  officer_id bigint [ref: > loan_officers.id]
+  amount decimal [not null]
+  status varchar [not null]
+  application_date date [not null]
+  approved_date date
+  remarks text
+  rejection_reason text
+  
+  Note: 'Loan applications submitted by employees'
+  indexes {
+    (employee_id, status) [name: 'idx_employee_status']
+    status [name: 'idx_status']
+  }
+}
+
+Table repayments {
+  repayment_id bigint [pk, increment]
+  loan_id bigint [not null, ref: > loan_applications.loan_id]
+  accountant_id bigint [ref: > accountants.id]
+  amount_paid decimal [not null]
+  payment_date date [not null]
+  balance decimal [not null]
+  
+  Note: 'Payment records for approved loans'
+  indexes {
+    loan_id [name: 'idx_loan_repayments']
+  }
+}
+
+// Relationship descriptions
+Ref: loan_applications.employee_id > employees.id [delete: cascade]
+Ref: loan_applications.loan_type_id > loan_types.loan_type_id [delete: restrict]
+Ref: loan_applications.officer_id > loan_officers.id [delete: set null]
+Ref: repayments.loan_id > loan_applications.loan_id [delete: cascade]
+Ref: repayments.accountant_id > accountants.id [delete: set null]
+
+// Enums
+Enum loan_status {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+// Notes
+Note loan_workflow {
+  '''
+  Loan Application Workflow:
+  1. Employee submits application (PENDING)
+  2. Loan Officer reviews and approves/rejects
+  3. If approved, Accountant processes repayments
+  4. Status changes to COMPLETED when fully paid
+  
+  Calculated Fields (Transient):
+  - total_paid = SUM(repayments.amount_paid)
+  - outstanding_balance = loan.amount - total_paid
+  '''
+}
